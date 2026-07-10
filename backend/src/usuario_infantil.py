@@ -8,16 +8,11 @@ class UsuarioInfantil:
         self.__contas = list[ContaInfantil]
 
     def validar(self, senha: str) -> bool:
-        self.__senha == senha
-        
-    @property
-    def contas(self) -> list[ContaInfantil]:
-        return list[ContaInfantil]
-    
-    @contas.setter                
-    def contas(self, other: list[ContaInfantil]):
-        self.__contas = other
-        
+        if self.__senha == senha:
+            return True
+        else:
+            return False
+
     @property
     def senha(self) -> str:
         return self.__senha
@@ -28,3 +23,12 @@ class UsuarioInfantil:
             raise ValueError(f'Senha inválida.')
         else:
             self.__senha = nova_senha
+
+    @property
+    def contas(self) -> list[ContaInfantil]:
+        return list[ContaInfantil]
+    
+    @contas.setter                
+    def contas(self, other: list[ContaInfantil]):
+        self.__contas = other
+        

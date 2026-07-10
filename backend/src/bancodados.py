@@ -40,14 +40,14 @@ class BancoDeDados:
             return False
         
         finally:
-            self.__conn.commit          
+            self.__conn.commit()
             return True
 
     def excluir_usuario(self, usuario: Usuario) -> bool:
         try:
             self.__cursor.execute("""
                 DELETE FROM Usuarios WHERE id = %s
-            """, (usuario.id)
+            """, (usuario.id,)
             )
 
         except Exception:
@@ -105,7 +105,7 @@ class BancoDeDados:
             """
             SELECT * FROM Usuarios WHERE id = %s
                 """,
-                (id)
+                (id,)
             )
 
             usuario_dados = self.__cursor.fetchone()
@@ -127,20 +127,25 @@ class BancoDeDados:
         finally:
             self.__conn.commit()
             return True
-            
 
-    def criar_conta(self, usuario: Usuario, tipo: int) -> bool:
+    def criar_conta(self, usuario: Usuario) -> bool:
         try:
             self.__cursor.execute(""" 
-                INSERT INTO UsuariosInfantil (numero,saldo,tipo,cartoes,caixinhas,dividas) VALUES(%s,%s,%s,%s,%s,%s)""",
+                INSERT INTO conta (numero,saldo,tipo,cartoes,caixinhas,dividas) VALUES(%s,%s,%s,%s,%s,%s)""",
                     (
-                    Conta.numero,
-                    Conta.saldo,
-                    Conta.tipo,
-                    Conta.cartoes,
-                    Conta.caixinhas, 
-                    Conta.dividas,
-                    )
+                    usuario.contas.numero,
+                    usuario.contas.saldo,
+                    usuario.contas.tipo,
+                    usuario.contas.cartoes,
+                    usuario.contas.caixinhas, 
+                    usuario.contas.dividas,
+                    ),
+                    
+                """
+                UPDATE Usuarios SET contas = ARRAY_APPEND(contas, %s) WHERE numero = %s""",
+                (
+
+                )
             )
 
         except Exception:
@@ -174,7 +179,7 @@ class BancoDeDados:
                 """
                 UPDATE conta SET saldo = %s WHERE numero = %s
                 """,
-                (val,usuario.contas.numero)
+                (conta.saldo, conta.numero)
             )
 
         except Exception:
@@ -188,43 +193,132 @@ class BancoDeDados:
     def criar_divida(
         self, divida: Divida, usuario_remetente: Usuario, usuario_destinatario: Usuario
     ) -> bool:
-        with psycopg.connect("dbname=CardBank user=postgres") as conn:
-            with conn.cursor() as cur:
-                self.__cursor.execute(""" 
-                    INSERT INTO (id,nome,senha,contas) VALUES(%s,%s,%s,%s)""",
-                        (   
-                        UsuarioInfantil.id,
-                        UsuarioInfantil.nome,
-                        UsuarioInfantil.senha,
-                        UsuarioInfantil.contas,
-                    ),
-                )
-        return True
-
+        try:    
+            self.__cursor.execute(""" 
+                INSERT INTO divida (id,valor,vencimento) VALUES(%s,%s,%s)""",
+                    (   
+                    divida.id,
+                    divida.valor,
+                    divida.data_vencimento
+                ),
+            )
+            
+            self.__cursor.execute(""" 
+                INSERT INTO (id, numero_da_conta, divida) VALUES(%s,%s,%s)""",
+                    (   
+                    usuario_destinatario.id,
+                    divida.valor,
+                    divida.data_vencimento
+                ),
+            )
+        except Exception:
+            self.__conn.rollback()
+            return False
+            
+        finally:
+            self.__conn.commit()
+            return True
     def pagar_divida(self, divida: Divida) -> bool:
-        pass
+        try:
+            self.__cursor.execute(
+                """
+                DELETE FROM conta WHERE id = %s
+                """,
+                (divida.id,)
+            )
+
+        except Exception:
+            self.__conn.rollback()
+            return False
+            
+        finally:
+            self.__conn.commit()
+            return True
 
     def obter_dividas(self, usuario_destinatario: Usuario) -> list[Divida]:
-        pass
+        try:
+            self.__cursor.execute(
+            """
+            SELECT * FROM Usuarios WHERE id = %s
+                """,
+                (id,)
+            )
+
+            dividas_dados = self.__cursor.fetchone()
+
+            if dividas_dados is None:
+                return None
+
+            return Usuario(
+                dividas_dados[1],
+                dividas_dados[2],
+                dividas_dados[3],
+            )
+            
+        except Exception:
+            self.__conn.rollback()
+            return False
+
+        finally:
+            self.__conn.commit()
+            return True
 
     def criar_cartao(self, usuario: Usuario, cartao: Cartao) -> bool:
         try:
             self.__cursor.execute(""" 
-                INSERT INTO UsuariosInfantil (tipo, nome, numero, cvv, vencimento, limite_usado) VALUES(%s,%s,%s,%s,%s,%s)""",
+                INSERT INTO cartao (tipo, nome, numero, cvv, vencimento, limite_usado, limite_total, bloqueado) VALUES(%s,%s,%s,%s,%s,%s,%s,%s)""",
                     (
-                        Cartao.tipo,
-                        Cartao.nome,
-                        Cartao.numero,
-                        Cartao.cvv,
-                        Cartao.vencimento,
-                        Cartao.limite_usado
-            )    
+                        cartao.tipo,
+                        cartao.nome,
+                        cartao.numero,
+                        cartao.cvv,
+                        cartao.vencimento,
+                        cartao.limite_usado,
+                        cartao.limite_total,
+                        cartao.bloqueado
+                    )    
+                )
+
+        except Exception:
+            self.__conn.rollback()
+            return False
+        finally:
+            self.__conn.commit()
+            return True
 
     def bloquear_cartao(self, cartao: Cartao) -> bool:
-        pass
+        try:
+            self.__cursor.execute(
+                """
+                UPDATE cartao SET bloqueado = %s WHERE numero = %s
+                """,
+                (cartao.limite_total, cartao.numero)
+            )
+
+        except Exception:
+            self.__conn.rollback()
+            return False
+            
+        finally:
+            self.__conn.commit()
+            return True
 
     def alterar_limite_cartao(self, cartao: Cartao) -> bool:
-        pass
+        try:
+            self.__cursor.execute(
+                """
+                UPDATE cartao SET limite_total = %s WHERE numero = %s
+                """,
+                (True, cartao.numero)
+            )
+
+        except Exception:
+            self.__conn.rollback()
+            return False
+            
+        finally:
+            self.__conn.commit()
+            return True
 
     def criar_caixinha(self, conta: Conta, caixinha: Caixinha) -> bool:
         pass

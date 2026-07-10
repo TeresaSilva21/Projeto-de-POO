@@ -13,7 +13,10 @@ class Usuario(AuditoriaMixin):
         self.__contas: list[Conta] = []
 
     def validar(self, senha: str) -> bool:
-        self.__senha == senha
+        if self.__senha == senha:
+            return True
+        else:
+            return False
 
     def excluir_conta(self, id: int) -> bool:
         if len(self.__contas[id].dividas) == 0:
@@ -38,19 +41,19 @@ class Usuario(AuditoriaMixin):
         return list[Conta]
     
     @cpf.setter
-    def cpf(self, novo_cpf):
+    def cpf(self, novo_cpf: str):
         if novo_cpf == "000000000-00":
             raise ValueError(f'CPF inválido.')
         else:
             self.__cpf = novo_cpf
     @renda.setter
-    def renda(self, nova_renda):
+    def renda(self, nova_renda: float):
         if nova_renda <= 0:
             raise ValueError(f'Renda inválida')
         else:
             self.__renda = nova_renda
     @senha.setter
-    def senha(self, nova_senha):
+    def senha(self, nova_senha: str):
         if nova_senha == "":
             raise ValueError(f'Senha inválida.')
         else:
