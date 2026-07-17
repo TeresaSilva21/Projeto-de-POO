@@ -1,16 +1,26 @@
-from conta import Conta
-from usuario_infantil import UsuarioInfantil
-from mixin import AuditoriaMixin
+import csv
 
-class Usuario(AuditoriaMixin):
+class Usuario:
     def __init__(self, id: int, nome: str, cpf: str, renda: float, senha: str):
         self.id = id
         self.nome = nome
         self.__cpf = cpf
         self.__renda = renda
         self.__senha = senha
-        self.__criancas: list[UsuarioInfantil] = []
-        self.__contas: list[Conta] = []
+        self.__criancas = []
+        self.__contas = []
+        
+    def salvar_no_csv(self):
+        with open("usuarios.csv", "a", newline="", encoding="utf-8") as arq:
+            escritor = csv.writer(arq)
+            
+            escritor.writerow([
+                self.id, 
+                self.nome, 
+                self.cpf, 
+                self.renda, 
+                self.senha
+            ])
 
     def validar(self, senha: str) -> bool:
         if self.__senha == senha:
@@ -35,37 +45,22 @@ class Usuario(AuditoriaMixin):
         return self.__senha
     @property
     def criancas(self):
-        return list[UsuarioInfantil]
+        return self.__criancas
     @property
     def contas(self):
-        return list[Conta]
+        return self.__contas
     
-    @cpf.setter
-    def cpf(self, novo_cpf: str):
-        if novo_cpf == "000000000-00":
-            raise ValueError(f'CPF inválido.')
-        else:
-            self.__cpf = novo_cpf
-    @renda.setter
-    def renda(self, nova_renda: float):
-        if nova_renda <= 0:
-            raise ValueError(f'Renda inválida')
-        else:
-            self.__renda = nova_renda
     @senha.setter
     def senha(self, nova_senha: str):
         if nova_senha == "":
             raise ValueError(f'Senha inválida.')
         else:
             self.__senha = nova_senha
+            
     @criancas.setter
-    def criancas(self, other: UsuarioInfantil):
-        self.__criancas = other
-
-
-    def adicionar_crianca(self, crianca: UsuarioInfantil):
-        self.__criancas.append(crianca)
+    def criancas(self, id):
+        self.__criancas.append(id)
 
     @contas.setter                
-    def contas(self, other: list[Conta]):
-        self.__contas = other
+    def contas(self, numero_da_conta):
+        self.__contas.append(numero_da_conta)

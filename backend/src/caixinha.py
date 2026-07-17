@@ -1,6 +1,5 @@
 from investimento import Investimento
 
-
 class Caixinha(Investimento):
     def __init__(self, nome: str):
         self.nome = nome
@@ -23,5 +22,3 @@ class Caixinha(Investimento):
         elif valor <= 0:
             return False
             
-    def calcular_rendimento(self, valor: float, tempo: float) -> float:
-        pass

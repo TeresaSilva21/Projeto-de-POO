@@ -20,25 +20,14 @@ class CartaoInfantil(Cartao):
     @property
     def nome(self) -> str:
         return self.__nome
-
-    @nome.setter
-    def nome(self, val: str):
-        self.__nome = val
         
     @property
     def tipo(self) -> int:
         return self.__tipo
-    @tipo.setter
-    def tipo(self, val: int):
-        self.__tipo = val
 
     @property
     def numero(self) -> int:
         return self.__numero
-
-    @numero.setter
-    def numero(self, val: int):
-        self.__numero = val
 
     @property
     def cvv(self) -> int:
